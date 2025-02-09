@@ -1,18 +1,18 @@
 #pragma once
-
 #include <QWidget>
 #include <QLineEdit>
-#include <QRadioButton>
-#include <QVBoxLayout>
-#include <QGroupBox>
-#include <QFormLayout>
-#include <QCheckBox>
-#include <QDateEdit>
-#include <QTextEdit>
+#include <QLabel>
 #include <QPushButton>
-#include <QHBoxLayout>
-#include <QDialog>
+#include <QDateEdit>
+#include <QRadioButton>
+#include <QTextEdit>
 #include <QMessageBox>
+#include <QGroupBox>
+#include <QCheckBox>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QFormLayout>
+#include <QDialog>
 #include <Generator.h>
 
 class MainWindow : public QWidget
@@ -20,28 +20,50 @@ class MainWindow : public QWidget
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = nullptr);
+    MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    /**
+     * @brief setCode
+     */
     void setCode();
 
 public slots:
-    void classGenerator();
+    /**
+     * @brief nameToConstructLabel
+     * @param nameValue
+     */
+    void nameToConstructLabel(QString nameValue);
+
+    /**
+     * @brief displayConstructLabel
+     */
+    void displayConstructLabel();
+
+    /**
+     * @brief displayDestructLabel
+     */
+    void displayDestructLabel();
+
+    /**
+     * @brief openClassGenerator
+     */
+    void openClassGenerator();
 
 private:
-    QLineEdit *_nameLine, *_parentLine, *_authorLine;
-    QRadioButton *_ifndefine, *_pragmaOnce;
-    QCheckBox *_construct, *_destruct;
-    QDateEdit *_dateComment;
-    QTextEdit *_textComment;
-    QPushButton *_generateBtn, *_quitBtn;
-    QString _code;
+    QLineEdit       *_nameLine, *_parentLine, *_authorLine;
+    QTextEdit       *_briefText;
+    QDateEdit       *_date;
+    QPushButton     *_generateBtn, *_quitBtn;
+    QRadioButton    *_ifndefineRadio, *_pragmaOnceRadio;
+    QCheckBox       *_constructCheck, *_destructCheck;
+    QLabel          *_constructLabel, *_destructLabel;
+    QString         _codeString;
 
+    QVBoxLayout     *_mainVBox, *_attributeVBox, *_optionVBox;
+    QHBoxLayout     *_protectHBox, *_buttonHBox;
+    QGroupBox       *_defGroup, *_optionGroup, *_commentGroup;
+    QFormLayout     *_defForm, *_optionForm, *_commentForm;
 
-    QVBoxLayout *_mainVBox, *_attributeVBox, *_optionVBox;
-    QHBoxLayout *_protectHBox, *_buttonHBox;
-    QGroupBox *_groupDef, *_groupOption, *_groupComment;
-    QFormLayout *_formDef, *_formComment;
-
-    Generator *_generatorWindow;
+    Generator       *_generatorWindow;
 };

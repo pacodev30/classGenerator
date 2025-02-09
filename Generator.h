@@ -1,11 +1,11 @@
 #pragma once
-
 #include <QWidget>
-#include <QDialog>
-#include <QTextEdit>
-#include <QBoxLayout>
 #include <QString>
+#include <QTextEdit>
 #include <QPushButton>
+#include <QDialog>
+#include <QBoxLayout>
+#include <QClipboard>
 
 class Generator : public QDialog
 {
@@ -18,6 +18,6 @@ private:
     QPushButton *_quitBtn;
     QString _data;
 
-    QVBoxLayout *_vBoxWindow;
-    QHBoxLayout *_hBoxValid;
+    QVBoxLayout *_windowVBox;
+    QHBoxLayout *_buttonHBox;
 };

@@ -1,4 +1,4 @@
-#include "MainWindow.h"
+#include <MainWindow.h>
 #include <QApplication>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -7,18 +7,21 @@ MainWindow::MainWindow(QWidget *parent)
     // INIT WIDGETS
     _nameLine = new QLineEdit(this);
     _parentLine = new QLineEdit(this);
+
+    _ifndefineRadio = new QRadioButton("ifndefine", this);
+    _pragmaOnceRadio = new QRadioButton("pragma once", this);
+    _pragmaOnceRadio->setChecked(true);
+
+    _constructLabel = new QLabel(this);
+    _destructLabel = new QLabel(this);
+    _constructCheck = new QCheckBox("Generate a construct", this);
+        _constructCheck->setChecked(true);
+    _destructCheck = new QCheckBox("Generate a destruct", this);
+        _destructCheck->setChecked(false);
+
     _authorLine = new QLineEdit(this);
-    _dateComment = new QDateEdit(QDate::currentDate(), this);
-    _textComment = new QTextEdit(this);
-
-
-    _ifndefine = new QRadioButton("ifndefine", this);
-    _pragmaOnce = new QRadioButton("pragma once", this);
-        _pragmaOnce->setChecked(true);
-
-    _construct = new QCheckBox("Generate a default construct", this);
-        _construct->setChecked(true);
-    _destruct = new QCheckBox("Generate a destruct", this);
+    _date = new QDateEdit(QDate::currentDate(), this);
+    _briefText = new QTextEdit(this);
 
     _generateBtn = new QPushButton("Generate class", this);
         _generateBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -28,87 +31,77 @@ MainWindow::MainWindow(QWidget *parent)
     // INIT LAYOUTS
     _mainVBox = new QVBoxLayout(this);
 
-    _formDef = new QFormLayout(this);
-    _formComment = new QFormLayout(this);
+    _defGroup = new QGroupBox("Class generator", this);
+    _defForm = new QFormLayout(this);
+    _commentForm = new QFormLayout(this);
+
+
+    _optionGroup = new QGroupBox("Options", this);
+    _commentGroup = new QGroupBox("Comments", this);
+        _commentGroup->setCheckable(true);
     _optionVBox = new QVBoxLayout(this);
-
-    _groupDef = new QGroupBox("Class generator", this);
-
-    _groupOption = new QGroupBox("Options", this);
-    _groupComment = new QGroupBox("Comments", this);
-    _groupComment->setCheckable(true);
+    _optionForm = new QFormLayout(this);
 
     _protectHBox = new QHBoxLayout(this);
     _buttonHBox = new QHBoxLayout(this);
         _buttonHBox->setAlignment(Qt::AlignRight);
 
-    // CONNECTS
-    connect(_generateBtn, SIGNAL(clicked(bool)), this, SLOT(classGenerator()));
-    connect(_quitBtn, SIGNAL(clicked(bool)), qApp, SLOT(quit()));
-
     // MANAGE LAYOUTS
     setLayout(_mainVBox);
-        _mainVBox->addWidget(_groupDef);
-            _groupDef->setLayout(_formDef);
-                _formDef->addRow("Name *", _nameLine);
-                _formDef->addRow("Parent class", _parentLine);
+        _mainVBox->addWidget(_defGroup);
+            _defGroup->setLayout(_defForm);
+                _defForm->addRow("Name *", _nameLine);
+                _defForm->addRow("Parent class", _parentLine);
 
-        _mainVBox->addWidget(_groupOption);
-            _groupOption->setLayout(_optionVBox);
+        _mainVBox->addWidget(_optionGroup);
+            _optionGroup->setLayout(_optionVBox);
                 _optionVBox->addLayout(_protectHBox);
-                    _protectHBox->addWidget(_ifndefine);
-                    _protectHBox->addWidget(_pragmaOnce);
-                _optionVBox->addWidget(_construct);
-                _optionVBox->addWidget(_destruct);
+                    _protectHBox->addWidget(_ifndefineRadio);
+                    _protectHBox->addWidget(_pragmaOnceRadio);
+                _optionVBox->addLayout(_optionForm);
+                    _optionForm->addRow(_constructCheck, _constructLabel);
+                _optionForm->addRow(_destructCheck, _destructLabel);
 
-        _mainVBox->addWidget(_groupComment);
-            _groupComment->setLayout(_formComment);
-                _formComment->addRow("Author", _authorLine);
-                _formComment->addRow("Date", _dateComment);
-                _formComment->addRow("Description", _textComment);
+        _mainVBox->addWidget(_commentGroup);
+            _commentGroup->setLayout(_commentForm);
+                _commentForm->addRow("Author", _authorLine);
+                _commentForm->addRow("Date", _date);
+                _commentForm->addRow("Briefing", _briefText);
             _mainVBox->addLayout(_buttonHBox);
                 _buttonHBox->addWidget(_generateBtn);
                 _buttonHBox->addWidget(_quitBtn);
 
+    // CONNECTS
+    connect(_generateBtn, SIGNAL(clicked(bool)), this, SLOT(openClassGenerator()));
+    connect(_quitBtn, SIGNAL(clicked(bool)), qApp, SLOT(quit()));
+
+    connect(_nameLine, SIGNAL(textChanged(QString)), this, SLOT(nameToConstructLabel(QString)));
+    connect(_constructCheck, SIGNAL(checkStateChanged(Qt::CheckState)), this, SLOT(displayConstructLabel()));
+    connect(_destructCheck, SIGNAL(checkStateChanged(Qt::CheckState)), this, SLOT(displayDestructLabel()));
 }
 
 MainWindow::~MainWindow() {}
 
-void MainWindow::setCode()
+
+void MainWindow::displayConstructLabel()
 {
-    if(!_code.isEmpty())
-        _code.clear();
-
-    if(_ifndefine->isChecked()) {
-        _code.append("#ifndef ");
-        _code.append(_nameLine->text().toUpper());
-        _code.append("_H \n");
-        _code.append("#define ");
-        _code.append(_nameLine->text().toUpper());
-        _code.append("_H \n\n");
-    }
-    else if(_pragmaOnce->isChecked()) {
-        _code.append("# pragma once \n\n");
-    }
-
-    _code.append("class ");
-    _code.append(_nameLine->text());
-
-    if(!_parentLine->text().isEmpty())
-    {
-        _code.append(": public ");
-        _code.append(_parentLine->text());
-    }
-    _code.append("\n{ \n public: \n\n private: \n\n}; \n");
-
-    if(_ifndefine->isChecked())
-    {
-        _code.append("#endif");
-    }
-
+    _constructCheck->isChecked() ? _constructLabel->show() : _constructLabel->hide();
 }
 
-void MainWindow::classGenerator()
+void MainWindow::displayDestructLabel()
+{
+    _destructCheck->isChecked() ? _destructLabel->show() : _destructLabel->hide();
+}
+
+void MainWindow::nameToConstructLabel(QString nameValue)
+{
+    displayConstructLabel();
+    displayDestructLabel();
+    _constructLabel->setText(nameValue + "()");
+    _destructLabel->setText("~" + _nameLine->text() + "()");
+}
+
+void MainWindow::openClassGenerator()
 {
     if(_nameLine->text().isEmpty())
     {
@@ -116,6 +109,58 @@ void MainWindow::classGenerator()
         return;
     }
     MainWindow::setCode();
-    _generatorWindow = new Generator(_code, this);
+    _generatorWindow = new Generator(_codeString, this);
     _generatorWindow->exec();
 }
+
+void MainWindow::setCode()
+{
+    // INCLUDE
+    if(!_codeString.isEmpty())
+        _codeString.clear();
+
+    if(_ifndefineRadio->isChecked()) {
+        _codeString.append("#ifndef " + _nameLine->text().toUpper() + "_H \n");
+        _codeString.append("#define " + _nameLine->text().toUpper() + "_H \n\n");
+    }
+
+    if(_pragmaOnceRadio->isChecked())
+        _codeString.append("# pragma once \n");
+
+    if(!_parentLine->text().isEmpty())
+        _codeString.append("# include \"" + _parentLine->text() + ".h\" \n\n");
+
+    // COMMENT
+    if(_commentGroup->isChecked()){
+        _codeString.append("/** \n");
+        if(!_authorLine->text().isEmpty())
+            _codeString.append("/* @author " + _authorLine->text() + "\n");
+        if(!_date->text().isEmpty())
+            _codeString.append("/* @date " + _date->text() + "\n");
+        if(!_briefText->document()->isEmpty())
+            _codeString.append("/* @brief " + _briefText->document()->toPlainText() + "\n");
+        _codeString.append("*/ \n");
+    }
+
+    // CLASS
+    _codeString.append("class " + _nameLine->text());
+
+    if(!_parentLine->text().isEmpty())
+        _codeString.append(" : public " + _parentLine->text());
+
+    _codeString.append("\n{ \n public: \n");
+
+    if(_constructCheck->isChecked())
+        _codeString.append("   " + _nameLine->text() + "(); \n");
+
+    if(_destructCheck->isChecked())
+        _codeString.append("   ~" + _nameLine->text() + "(); \n");
+
+    _codeString.append("\nprivate: \n\n}; \n");
+
+    if(_ifndefineRadio->isChecked())
+        _codeString.append("#endif");
+
+}
+
+
